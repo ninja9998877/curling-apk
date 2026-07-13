@@ -7,33 +7,47 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # 固定 22.04：buildozer 依赖的 libtinfo5 在 24.04 已被移除
+    runs-on: ubuntu-22.04
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      # 缓存 SDK/NDK，加速后续构建
+      - name: 配置 Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装系统依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential ccache git zip unzip \
+            autoconf libtool pkg-config zlib1g-dev \
+            libncurses5-dev libncursesw5-dev libtinfo5 \
+            cmake libffi-dev libssl-dev
+
+      # 锁定整套已验证的稳定工具链版本，避免 latest/master 的前沿破损
+      - name: 安装 buildozer 工具链（锁定版本）
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          pip install Cython==0.29.33
+          pip install buildozer==1.5.0
+
       - name: 缓存 buildozer 全局目录
         uses: actions/cache@v4
         with:
           path: ~/.buildozer
-          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
-          restore-keys: buildozer-global-
+          key: buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-
 
-      # 直接使用 Kivy 官方维护的 Docker 镜像打包，
-      # 镜像内 Java/NDK/SDK/Cython 版本均已由官方对齐，避免手动搭环境的工具链冲突。
-      - name: 使用官方 buildozer 镜像打包 APK
+      - name: 打包 APK
+        env:
+          # 使用 runner 预装的 Temurin 17，避免自装 openjdk 引发的 Java 兼容问题
+          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
         run: |
-          docker run --rm \
-            -u root \
-            -v "${{ github.workspace }}":/home/user/hostcwd \
-            -v "${HOME}/.buildozer":/home/user/.buildozer \
-            ghcr.io/kivy/buildozer:latest \
-            android debug
-
-      - name: 修正产物权限
-        if: always()
-        run: sudo chown -R $USER:$USER "${{ github.workspace }}/bin" || true
+          export PATH=$HOME/.local/bin:$PATH
+          yes | buildozer android debug
 
       - name: 上传 APK 产物
         uses: actions/upload-artifact@v4

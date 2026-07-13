@@ -8,10 +8,8 @@ source.include_exts = py,png,jpg,ttf,otf,ttc
 
 version = 1.0
 
-# 显式锁定 Python 与 Kivy 版本：
-# 官方 latest 镜像的 p4a 默认 hostpython 为 3.14，但 kivy/pyjnius 尚无 cp314 的
-# android wheel，会导致 "No matching distribution"。锁到 3.11 可匹配现有 wheel。
-requirements = python3==3.11.9,hostpython3==3.11.9,kivy==2.3.0
+# 依赖：让 p4a 稳定版 recipe 决定 python 具体版本（带 android 补丁），仅锁 kivy。
+requirements = python3,kivy==2.3.0
 
 orientation = portrait
 fullscreen = 0
@@ -34,6 +32,10 @@ android.archs = arm64-v8a, armeabi-v7a
 
 # 允许云端自动接受 SDK 许可
 android.accept_sdk_license = True
+
+# 锁定 python-for-android 到稳定 release，避免 master 分支的前沿破损
+# （latest 会用 Python 3.14 宿主 + 损坏的 pip vendored 库）。
+p4a.branch = 2024.01.21
 
 [buildozer]
 log_level = 2
