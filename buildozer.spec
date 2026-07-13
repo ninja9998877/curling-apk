@@ -8,8 +8,10 @@ source.include_exts = py,png,jpg,ttf,otf,ttc
 
 version = 1.0
 
-# 只需 Python + Kivy（物理逻辑纯 Python，无需 numpy）
-requirements = python3,kivy==2.3.0
+# 显式锁定 Python 与 Kivy 版本：
+# 官方 latest 镜像的 p4a 默认 hostpython 为 3.14，但 kivy/pyjnius 尚无 cp314 的
+# android wheel，会导致 "No matching distribution"。锁到 3.11 可匹配现有 wheel。
+requirements = python3==3.11.9,hostpython3==3.11.9,kivy==2.3.0
 
 orientation = portrait
 fullscreen = 0
