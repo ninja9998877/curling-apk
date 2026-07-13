@@ -373,7 +373,7 @@ class CurlingApp(App):
         self.s_angle = LabeledSlider("初始角度(度)", -12, 12, 0, "{:.0f}", self._update)
 
         thrower_box = BoxLayout(orientation="vertical", size_hint=(1, None),
-                                height=dp(60) * 3 + dp(30),
+                                height=dp(60) * 3 + dp(40),
                                 pos_hint={"x": 0, "y": 0}, padding=(dp(6), dp(4)),
                                 spacing=dp(2))
         with thrower_box.canvas.before:
@@ -381,7 +381,7 @@ class CurlingApp(App):
             self._tb_rect = Rectangle(pos=thrower_box.pos, size=thrower_box.size)
         thrower_box.bind(pos=lambda *a: setattr(self._tb_rect, "pos", thrower_box.pos),
                          size=lambda *a: setattr(self._tb_rect, "size", thrower_box.size))
-        tb_title = Label(text="🥌 滑行人控制", size_hint_y=None, height=dp(24),
+        tb_title = Label(text="滑行人控制", size_hint_y=None, height=dp(24),
                          font_size="14sp", color=(0.1, 0.1, 0.3, 1), **_lbl_kwargs())
         thrower_box.add_widget(tb_title)
         thrower_box.add_widget(self.s_speed)
@@ -391,17 +391,23 @@ class CurlingApp(App):
         self._thrower_h = thrower_box.height
 
         # ===== 模块②：冰面面板（左侧，可展开） =====
-        self.ice_panel = CollapsiblePanel("❄ 冰面参数", on_toggle=self._on_panel_toggle)
+        self.ice_panel = CollapsiblePanel("冰面参数", on_toggle=self._on_panel_toggle)
         self.s_fric = LabeledSlider("冰面摩擦", 0.7, 1.5, 1.0, "{:.2f}", self._update)
         self.s_swing = LabeledSlider("冰面摆动性", 0.5, 2.0, 1.0, "{:.1f}", self._update)
         self.ice_panel.add_content(self.s_fric)
         self.ice_panel.add_content(self.s_swing)
+        # 国际标准提示：WCF（世界冰壶联合会）竞赛冰面基准
+        ice_std = Label(text="国际标准(WCF)：摩擦 1.00 / 摆动 1.0\n为标准竞赛冰面基准值",
+                        size_hint_y=None, height=dp(34), halign="left", valign="middle",
+                        font_size="11sp", color=(0.8, 0.9, 1, 1), **_lbl_kwargs())
+        ice_std.bind(size=lambda w, s: setattr(w, "text_size", s))
+        self.ice_panel.add_content(ice_std)
         self.ice_panel.size_hint = (0.5, None)
-        self.ice_panel.pos_hint = {"x": 0.0, "y": 0.0}   # 位置在 reflow 时更新
+        # 不设 pos_hint：Kivy 中 pos_hint 会覆盖手动 x/y，位置全交给 _reflow_panels
         root.add_widget(self.ice_panel)
 
         # ===== 模块③：扫冰面板（右侧，半透明叠场地，可展开） =====
-        self.sweep_panel = CollapsiblePanel("🧹 扫冰控制", on_toggle=self._on_panel_toggle)
+        self.sweep_panel = CollapsiblePanel("扫冰控制", on_toggle=self._on_panel_toggle)
         self.s_sweep = LabeledSlider("刷冰强度", 1.0, 3.0, 1.5, "{:.1f}", self._update)
         seg_title = Label(text="刷到哪条线", size_hint_y=None, height=dp(20),
                           halign="left", valign="middle", font_size="13sp",
@@ -412,7 +418,6 @@ class CurlingApp(App):
         self.sweep_panel.add_content(seg_title)
         self.sweep_panel.add_content(self.seg_sweep)
         self.sweep_panel.size_hint = (0.5, None)
-        self.sweep_panel.pos_hint = {"right": 1.0, "y": 0.0}
         root.add_widget(self.sweep_panel)
 
         # 面板初始位置随窗口/自身尺寸变化而重新贴到滑行人模块之上
