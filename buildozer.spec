@@ -20,8 +20,10 @@ fullscreen = 0
 android.permissions =
 
 # 目标/最低 API
+# minapi 必须 >= 26：CPython 的 grpmodule.c 依赖 setgrent/getgrent/endgrent，
+# 这些函数在 Android bionic 中自 API 26 起才引入，低于 26 会编译报错。
 android.api = 34
-android.minapi = 24
+android.minapi = 26
 
 # 锁定 NDK 版本：默认的 r28c 移除了 clang 旧选项，会导致 hostpython/kivy 编译失败。
 # r25b 是 python-for-android 官方推荐且验证稳定的版本。
